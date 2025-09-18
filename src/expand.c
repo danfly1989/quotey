@@ -71,33 +71,42 @@ void	*ft_free_error_expanded(char **expanded, int i)
 
 char	**ft_expand_tokens(t_dat *d, char **tokens, int *qtypes, int i)
 {
-	char **expanded;
+	char	**expanded;
+	int		j;
 
+	// count tokens
 	while (tokens[i])
 		i++;
 	expanded = malloc(sizeof(char *) * (i + 1));
 	if (!expanded)
 		return (NULL);
 	i = 0;
+	j = 0;
 	while (tokens[i])
 	{
-		// FIXED: Check quote type FIRST before any expansion
-		if (qtypes[i] == 1) // Single quoted - no expansion at all
+		if (qtypes[i] == 1) // single quoted: no expansion
 		{
-			expanded[i] = ft_strdup(tokens[i]);
+			expanded[j] = ft_strdup(tokens[i]);
 		}
-		else // Unquoted or double quoted - allow expansion
+		else // unquoted or double quoted: expand
 		{
 			d->tmp2 = ft_expand_exit_status(d, tokens[i]);
-			expanded[i] = ft_expand_token(d->tmp2, d, qtypes[i], 0);
+			expanded[j] = ft_expand_token(d->tmp2, d, qtypes[i], 0);
 			free(d->tmp2);
 			d->tmp2 = NULL;
+			// If expansion is empty and token was unquoted → drop it
+			if (expanded[j][0] == '\0' && qtypes[i] != 2)
+			{
+				free(expanded[j]);
+				i++;
+				continue ; // don’t increment j
+			}
 		}
-
-		if (!expanded[i])
-			return (ft_free_error_expanded(expanded, i));
+		if (!expanded[j])
+			return (ft_free_error_expanded(expanded, j));
 		i++;
+		j++;
 	}
-	expanded[i] = NULL;
+	expanded[j] = NULL;
 	return (expanded);
 }
