@@ -16,11 +16,14 @@ void	ft_change_directory(t_dat *data, size_t k)
 {
 	char	*path;
 	char	*oldpwd;
+	int		should_free_path;
 
+	should_free_path = 0;
 	if (data->xln[k + 1] != NULL && data->xln[k + 2] != NULL)
 	{
 		(write(2, "minishell: cd: too many arguments\n", 34));
-		return (g_last_exit_status, (void)0);
+		g_last_exit_status = 1; // Fix: Set exit status to 1
+		return ;
 	}
 	oldpwd = getcwd(NULL, 0);
 	if (data->xln[k + 1] == NULL || ft_strcmp(data->xln[k + 1], "~") == 0)
@@ -29,20 +32,26 @@ void	ft_change_directory(t_dat *data, size_t k)
 		if (path == NULL)
 		{
 			(write(2, "cd: HOME not set\n", 17), g_last_exit_status = 1);
+			free(oldpwd);
 			return ;
 		}
 	}
 	else
-		path = data->xln[k + 1];
+	{
+		path = ft_strdup(data->xln[k + 1]);
+		should_free_path = 1;
+	}
 	if (chdir(path) == 0)
 		ft_update_directories(data, oldpwd);
 	else
 	{
 		(ft_cd_error(path), g_last_exit_status = 1);
-		g_last_exit_status = 1;
+		g_last_exit_status = 1; // This line is redundant now
+		free(oldpwd);
 	}
+	if (should_free_path)
+		free(path);
 }
-
 void	ft_pwd(void)
 {
 	char	*cwd;
