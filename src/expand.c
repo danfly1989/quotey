@@ -71,7 +71,7 @@ void	*ft_free_error_expanded(char **expanded, int i)
 
 char	**ft_expand_tokens(t_dat *d, char **tokens, int *qtypes, int i)
 {
-	char	**expanded;
+	char **expanded;
 
 	while (tokens[i])
 		i++;
@@ -81,10 +81,19 @@ char	**ft_expand_tokens(t_dat *d, char **tokens, int *qtypes, int i)
 	i = 0;
 	while (tokens[i])
 	{
-		d->tmp2 = ft_expand_exit_status(d, tokens[i]);
-		expanded[i] = ft_expand_token(d->tmp2, d, qtypes[i], 0);
-		free(d->tmp2);
-		d->tmp2 = NULL;
+		// FIXED: Check quote type FIRST before any expansion
+		if (qtypes[i] == 1) // Single quoted - no expansion at all
+		{
+			expanded[i] = ft_strdup(tokens[i]);
+		}
+		else // Unquoted or double quoted - allow expansion
+		{
+			d->tmp2 = ft_expand_exit_status(d, tokens[i]);
+			expanded[i] = ft_expand_token(d->tmp2, d, qtypes[i], 0);
+			free(d->tmp2);
+			d->tmp2 = NULL;
+		}
+
 		if (!expanded[i])
 			return (ft_free_error_expanded(expanded, i));
 		i++;
